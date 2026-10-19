@@ -1,0 +1,15 @@
+# Work override: trust the corporate CA bundle (TLS inspection).
+# Use: docker compose -f docker-compose.yml -f docker-compose.work.yml up -d
+services:
+  silverbullet-init:
+    environment:
+      - GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.pem
+    volumes:
+      - ${CA_BUNDLE}:/etc/ssl/certs/ca-certificates.pem:ro
+
+  silverbullet:
+    environment:
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.pem
+      - SSL_CERT_DIR=/etc/ssl/certs
+    volumes:
+      - ${CA_BUNDLE}:/etc/ssl/certs/ca-certificates.pem:ro

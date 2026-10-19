@@ -1,0 +1,33 @@
+# Same file for every host. Only .env differs.
+services:
+  silverbullet-init:
+    image: alpine/git:latest
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        rm -rf /tmp/cfg
+        git clone --depth 1 "$$CONFIG_REPO_URL" /tmp/cfg
+        mkdir -p /data/Library/Local
+        cp -r /tmp/cfg/Library/Local/. /data/Library/Local/
+    environment:
+      CONFIG_REPO_URL: ${CONFIG_REPO_URL:-https://github.com/marvindore/silverbullet-config.git}
+    volumes:
+      - ${SPACE_PATH:-silverbullet-space}:/data
+
+  silverbullet:
+    image: ghcr.io/silverbulletmd/silverbullet:latest
+    restart: unless-stopped
+    depends_on:
+      silverbullet-init:
+        condition: service_completed_successfully
+    ports:
+      - "${BIND:-127.0.0.1:3010}:3000"
+    environment:
+      # Pass-through: set only when defined, so an unset SB_USER means no login.
+      - SB_USER
+    volumes:
+      - ${SPACE_PATH:-silverbullet-space}:/data
+
+volumes:
+  silverbullet-space:
